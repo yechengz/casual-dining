@@ -175,6 +175,23 @@ display: grid;
 grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.reviews__grid--vertical {
+grid-template-columns: 1fr;
+}
+
+.reviews__grid--horizontal {
+grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: min(85%, 480px);
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  padding-bottom: 16px;
+}
+
+.reviews__grid--horizontal > .reviews__grid-item {
+scroll-snap-align: start;
+}
+
 .reviews {
 padding: 80px 0 72px;
 }
@@ -316,7 +333,7 @@ margin: 0;
 .reviews__intro {
 margin-bottom: 24px;
 }
-.grid--reviews {
+.grid--reviews:not(.reviews__grid--horizontal) {
 grid-template-columns: 1fr;
 }
 
@@ -373,6 +390,7 @@ type CasualDiningReviewsProps = {
     starColor?: ThemeColor;
   };
   content: {
+    layout?: "grid" | "vertical" | "horizontal";
     showReviewCount: boolean;
     maxReviews: number;
   };
@@ -543,6 +561,15 @@ const fields: YextFields<CasualDiningReviewsProps> = {
     label: msg("fields.reviewsContent", "Reviews Content"),
     type: "object",
     objectFields: {
+      layout: {
+        label: msg("fields.reviewsLayout", "Reviews Layout"),
+        type: "select",
+        options: [
+          { label: msg("fields.options.grid", "Grid"), value: "grid" },
+          { label: msg("fields.options.verticalList", "Vertical List"), value: "vertical" },
+          { label: msg("fields.options.horizontalScroll", "Horizontal Scroll"), value: "horizontal" },
+        ],
+      },
       showReviewCount: {
         label: msg("fields.showReviewCount", "Show Review Count"),
         type: "radio",
@@ -598,6 +625,7 @@ const defaultProps = {
     },
   },
   content: {
+    layout: "grid" as const,
     showReviewCount: true,
     maxReviews: 4,
   },
@@ -759,7 +787,10 @@ const CasualDiningReviewsComponent: PuckComponent<CasualDiningReviewsProps> = (
                   </EntityField>
                 </div>
               </div>
-              <div className="reviews__grid grid grid--reviews">
+              <div
+                className={`reviews__grid grid grid--reviews reviews__grid--${props.content.layout ?? "grid"}`}
+                tabIndex={props.content.layout === "horizontal" ? 0 : undefined}
+              >
                 {displayedReviews.map((review, index) => {
                   return (
                     <article
